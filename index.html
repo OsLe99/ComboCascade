@@ -49,12 +49,58 @@
         transform: translateY(0);
       }
     }
+    #win-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #win-message {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #win-message h2 {
+      margin: 0 0 20px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    #restart-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #restart-button:hover {
+      background: #45a049;
+    }
   </style>
 </head>
 <body>
   <h1>Combo Cascade</h1>
   <div id="game-board"></div>
   <p id="status">Combos: 0/8 | Moves Left: 20</p>
+  <div id="win-overlay" style="display: none;">
+    <div id="win-message">
+      <h2>You Win!</h2>
+      <button id="restart-button">Play Again</button>
+    </div>
+  </div>
   <script>
     const board = document.getElementById('game-board');
     const status = document.getElementById('status');
@@ -183,7 +229,7 @@
       playComboSound(combos); // Play the sound for the current combo
       status.textContent = `Combos: ${combos}/8 | Moves Left: ${movesLeft}`;
       if (combos >= 8) {
-        alert('You win!');
+        showWinMessage(); // Show the win overlay
       }
 
       setTimeout(dropTiles, 500); // Wait for clearing animation to finish
@@ -240,6 +286,29 @@
         audio.volume = 0.5; // Set volume to 50%
         audio.play();
       }
+    }
+
+    function showWinMessage() {
+      const winOverlay = document.getElementById('win-overlay');
+      winOverlay.style.display = 'flex'; // Show the overlay
+
+      const restartButton = document.getElementById('restart-button');
+      restartButton.addEventListener('click', restartGame);
+    }
+
+    function restartGame() {
+      const winOverlay = document.getElementById('win-overlay');
+      winOverlay.style.display = 'none'; // Hide the overlay
+
+      // Reset game variables
+      combos = 0;
+      movesLeft = 20;
+      status.textContent = `Combos: ${combos}/8 | Moves Left: ${movesLeft}`;
+
+      // Clear and reinitialize the board
+      board.innerHTML = '';
+      tiles.length = 0; // Clear the tiles array
+      initBoard();
     }
 
     initBoard();
