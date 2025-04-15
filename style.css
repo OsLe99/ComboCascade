@@ -1,0 +1,118 @@
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    flex-direction: column; /* Stack elements vertically */
+  }
+  
+  /* Game board styling */
+  #game-board {
+    display: grid;
+    grid-template-columns: repeat(6, 50px);
+    gap: 5px;
+    margin: 0; /* Remove any extra margin */
+  }
+  
+  /* Tile styling */
+  .tile { 
+    width: 50px; 
+    height: 50px; 
+    background: lightblue; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 18px; 
+    cursor: pointer; 
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease; 
+  }
+  
+  .tile.match { 
+    background: lightgreen; 
+  }
+  
+  .tile:hover {
+    border: 2px dashed gray;
+    cursor: pointer;
+  }
+  
+  .tile.selected {
+    border: 2px solid black;
+    box-shadow: 0 0 10px black;
+  }
+  
+  .tile.clearing {
+    animation: fadeOut 0.5s forwards;
+  }
+  
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  
+  .tile.dropping {
+    animation: drop 0.5s ease-in;
+  }
+  
+  @keyframes drop {
+    from {
+      transform: translateY(-50px);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  
+  /* Win overlay styling */
+  #win-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  #win-message {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  #win-message h2 {
+    margin: 0 0 20px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  #restart-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #restart-button:hover {
+    background: #45a049;
+  }
+  
+  #status {
+    margin-bottom: 20px;
+  }
