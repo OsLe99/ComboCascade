@@ -1,7 +1,7 @@
 const board = document.getElementById('game-board');
 const status = document.getElementById('status');
 const gridSize = 10; // Size of the grid (10x10)
-let combos = 0;
+let combos = 0; // Track current combo count
 let movesLeft = 20;
 let selectedTile = null;
 let isAnimating = false; // Track animation state
