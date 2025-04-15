@@ -158,7 +158,14 @@ function clearMatches(matches) {
   }
 
   setTimeout(() => {
-    dropTiles();
+    if (matches.size > 0) {
+      dropTiles();
+    } else {
+      // If no chain reactions occur, show the encouragement message
+      showEncouragementMessage(highestCombo);
+      highestCombo = 0; // Reset the highest combo for the next sequence
+      isAnimating = false; // Unlock interactions
+    }
   }, 500); // Wait for clearing animation to finish
 }
 
@@ -200,9 +207,8 @@ function dropTiles() {
     if (!isAnimating) {
       showEncouragementMessage(highestCombo);
       highestCombo = 0; // Reset the highest combo for the next sequence
+      isAnimating = false; // Unlock interactions
     }
-
-    isAnimating = false; // Unlock interactions after animations
   }, 500); // Wait for dropping animation to finish
 }
 
