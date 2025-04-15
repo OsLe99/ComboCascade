@@ -1,7 +1,7 @@
 const board = document.getElementById('game-board');
 const status = document.getElementById('status');
 const gridSize = 10; // Size of the grid (10x10)
-let combos = 0;
+let combos = 0; // Track current combo count
 let movesLeft = 20;
 let selectedTile = null;
 let isAnimating = false; // Track animation state
@@ -125,6 +125,7 @@ function checkMatches() {
 
 function clearMatches(matches) {
   isAnimating = true; // Lock interactions during animations
+  console.log('isAnimating:', isAnimating);
 
   matches.forEach(index => {
     const tile = tiles[index];
@@ -145,10 +146,8 @@ function clearMatches(matches) {
   // Show the combo multiplier and points
   showComboMultiplier(combos, points);
 
-  // Only play the combo sound if it's part of a chain reaction
-  if (chainingCombos) {
-    playComboSound(combos);
-  }
+  // Play the combo sound
+  playComboSound(combos);
 
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
 
@@ -159,12 +158,11 @@ function clearMatches(matches) {
 
   setTimeout(() => {
     if (matches.size > 0) {
-      dropTiles();
+        dropTiles();
     } else {
-      // If no chain reactions occur, show the encouragement message
-      showEncouragementMessage(highestCombo);
-      highestCombo = 0; // Reset the highest combo for the next sequence
-      isAnimating = false; // Unlock interactions
+        showEncouragementMessage(highestCombo);
+        highestCombo = 0; // Reset the highest combo for the next sequence
+        isAnimating = false; // Unlock interactions
     }
   }, 500); // Wait for clearing animation to finish
 }
@@ -203,8 +201,9 @@ function dropTiles() {
     chainingCombos = true; // Set chaining flag for chain reactions BEFORE checking matches
     checkMatches();
 
-    // If no more matches are found, show the encouragement message
-    if (!isAnimating) {
+    // Ensure isAnimating is reset after all checks
+    isAnimating = false; // Unlock interactions
+    if (!chainingCombos) {
       showEncouragementMessage(highestCombo);
       highestCombo = 0; // Reset the highest combo for the next sequence
       isAnimating = false; // Unlock interactions
