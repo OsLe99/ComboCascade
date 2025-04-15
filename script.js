@@ -125,6 +125,7 @@ function checkMatches() {
 
 function clearMatches(matches) {
   isAnimating = true; // Lock interactions during animations
+  console.log('isAnimating:', isAnimating);
 
   matches.forEach(index => {
     const tile = tiles[index];
@@ -145,10 +146,8 @@ function clearMatches(matches) {
   // Show the combo multiplier and points
   showComboMultiplier(combos, points);
 
-  // Only play the combo sound if it's part of a chain reaction
-  if (chainingCombos) {
-    playComboSound(combos);
-  }
+  // Play the combo sound
+  playComboSound(combos);
 
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
 
@@ -158,7 +157,13 @@ function clearMatches(matches) {
   }
 
   setTimeout(() => {
-    dropTiles();
+    if (matches.size > 0) {
+        dropTiles();
+    } else {
+        showEncouragementMessage(highestCombo);
+        highestCombo = 0; // Reset the highest combo for the next sequence
+        isAnimating = false; // Unlock interactions
+    }
   }, 500); // Wait for clearing animation to finish
 }
 
@@ -196,13 +201,12 @@ function dropTiles() {
     chainingCombos = true; // Set chaining flag for chain reactions BEFORE checking matches
     checkMatches();
 
-    // If no more matches are found, show the encouragement message
-    if (!isAnimating) {
+    // Ensure isAnimating is reset after all checks
+    isAnimating = false; // Unlock interactions
+    if (!chainingCombos) {
       showEncouragementMessage(highestCombo);
       highestCombo = 0; // Reset the highest combo for the next sequence
     }
-
-    isAnimating = false; // Unlock interactions after animations
   }, 500); // Wait for dropping animation to finish
 }
 
