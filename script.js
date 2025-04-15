@@ -10,6 +10,35 @@ let chainingCombos = false; // Track if combos are part of a chain reaction
 let penaltyEligible = false; // Track if penalty is eligible for the current move
 let highestCombo = 0; // Track the highest combo multiplier in a sequence
 
+// Variables for settings
+let soundVolume = 0.5; // Default volume
+let targetScore = 10000; // Default target score
+
+// Add event listeners for settings
+document.getElementById('settings-button').addEventListener('click', () => {
+  document.getElementById('settings-modal').style.display = 'flex';
+});
+
+document.getElementById('close-settings').addEventListener('click', () => {
+  document.getElementById('settings-modal').style.display = 'none';
+});
+
+document.getElementById('save-settings').addEventListener('click', () => {
+  // Save volume
+  const volumeSlider = document.getElementById('volume-slider');
+  soundVolume = parseFloat(volumeSlider.value);
+
+  // Save target score
+  const targetScoreInput = document.getElementById('target-score');
+  targetScore = parseInt(targetScoreInput.value, 10);
+
+  // Update the status text to reflect the new target score
+  status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
+
+  // Close the modal
+  document.getElementById('settings-modal').style.display = 'none';
+});
+
 // Initialize the board
 const tiles = [];
 const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
@@ -128,7 +157,6 @@ function checkMatches() {
 
 function clearMatches(matches) {
   isAnimating = true; // Lock interactions during animations
-  console.log('isAnimating:', isAnimating);
 
   matches.forEach(index => {
     const tile = tiles[index];
@@ -137,39 +165,37 @@ function clearMatches(matches) {
       tile.dataset.color = '';
       tile.style.backgroundColor = 'white';
       tile.classList.remove('clearing'); // Remove the class after animation
-    }, 500); // Match the duration of the fadeOut animation
+    }, 500);
   });
 
   combos++;
-  highestCombo = Math.max(highestCombo, combos); // Update the highest combo multiplier
-  const points = matches.size * 10 * combos; // Multiply score by the combo count
-  score += points; // Add the calculated points to the score
-  movesLeft += 2; // Add 2 extra moves for every combo
+  highestCombo = Math.max(highestCombo, combos);
+  const points = matches.size * 10 * combos;
+  score += points;
+  movesLeft += 2;
 
-  // Show the combo multiplier and points
   showComboMultiplier(combos, points);
 
-  // Play the combo sound starting from combo1.wav for the first chain reaction
   if (combos >= 1) {
-    playComboSound(combos - 1); // Adjust to start from combo1.wav
+    playComboSound(combos - 1);
   }
 
-  status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
+  status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
 
-  // Update the win condition to require 10,000 points
-  if (score >= 10000) {
-    showWinMessage(); // Show the win overlay
+  // Check if the player has reached the target score
+  if (score >= targetScore) {
+    showWinMessage();
   }
 
   setTimeout(() => {
     if (matches.size > 0) {
-        dropTiles();
+      dropTiles();
     } else {
-        showEncouragementMessage(highestCombo);
-        highestCombo = 0; // Reset the highest combo for the next sequence
-        isAnimating = false; // Unlock interactions
+      showEncouragementMessage(highestCombo);
+      highestCombo = 0;
+      isAnimating = false;
     }
-  }, 500); // Wait for clearing animation to finish
+  }, 500);
 }
 
 function dropTiles() {
@@ -231,7 +257,7 @@ function playComboSound(combo) {
   const soundFile = soundMap[combo];
   if (soundFile) {
     const audio = new Audio(soundFile);
-    audio.volume = 0.5; // Set volume to 50%
+    audio.volume = soundVolume; // Use the volume setting
     audio.play();
   }
 }
@@ -332,7 +358,7 @@ function restartGame() {
   combos = 0;
   movesLeft = 20;
   score = 0; // Reset the score
-  status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: 10,000 Points`;
+  status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
 
   // Clear and reinitialize the board
   board.innerHTML = '';
