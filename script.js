@@ -47,12 +47,6 @@ function handleTileClick(index) {
     selectedTile.classList.remove('selected'); // Remove the selected class
     selectedTile = null;
   }
-
-  movesLeft--;
-  status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
-  if (movesLeft <= 0) {
-    showGameOverMessage(); // Show the "Game Over" overlay
-  }
 }
 
 function areAdjacent(index1, index2) {
@@ -77,6 +71,15 @@ function swapTiles(index1, index2) {
   tile1.style.backgroundColor = tile2.dataset.color;
   tile2.dataset.color = tempColor;
   tile2.style.backgroundColor = tempColor;
+
+  // Deduct a move only when a valid swap is performed
+  movesLeft--;
+  status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
+
+  // Check for game over
+  if (movesLeft <= 0) {
+    showGameOverMessage(); // Show the "Game Over" overlay
+  }
 
   // Add a slight delay to allow the swap animation to complete
   setTimeout(() => checkMatches(), 300);
@@ -146,8 +149,10 @@ function clearMatches(matches) {
   // Show the combo multiplier and points
   showComboMultiplier(combos, points);
 
-  // Play the combo sound
-  playComboSound(combos);
+  // Play the combo sound starting from combo1.wav for the first chain reaction
+  if (combos >= 1) {
+    playComboSound(combos - 1); // Adjust to start from combo1.wav
+  }
 
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
 
