@@ -1,20 +1,20 @@
 const board = document.getElementById('game-board');
 const status = document.getElementById('status');
-const gridSize = 10; // Size of the grid (10x10)
-let combos = 0; // Track current combo count
+const gridSize = 10; // Grid size (10x10)
+let combos = 0; // Current combo count
 let movesLeft = 20;
 let selectedTile = null;
-let isAnimating = false; // Track animation state
-let score = 0; // Initialize the score
-let chainingCombos = false; // Track if combos are part of a chain reaction
-let penaltyEligible = false; // Track if penalty is eligible for the current move
-let highestCombo = 0; // Track the highest combo multiplier in a sequence
+let isAnimating = false; // Animation state
+let score = 0; // Player's score
+let chainingCombos = false; // Chain reaction tracking
+let penaltyEligible = false; // Penalty eligibility
+let highestCombo = 0; // Highest combo in a sequence
 
-// Variables for settings
-let soundVolume = 0.5; // Default volume
+// Game settings
+let soundVolume = 0.5; // Default sound volume
 let targetScore = 10000; // Default target score
 
-// Add event listeners for settings
+// Event listeners for settings modal
 document.getElementById('settings-button').addEventListener('click', () => {
   document.getElementById('settings-modal').style.display = 'flex';
 });
@@ -24,22 +24,13 @@ document.getElementById('close-settings').addEventListener('click', () => {
 });
 
 document.getElementById('save-settings').addEventListener('click', () => {
-  // Save volume
-  const volumeSlider = document.getElementById('volume-slider');
-  soundVolume = parseFloat(volumeSlider.value);
-
-  // Save target score
-  const targetScoreInput = document.getElementById('target-score');
-  targetScore = parseInt(targetScoreInput.value, 10);
-
-  // Update the status text to reflect the new target score
+  soundVolume = parseFloat(document.getElementById('volume-slider').value);
+  targetScore = parseInt(document.getElementById('target-score').value, 10);
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
-
-  // Close the modal
   document.getElementById('settings-modal').style.display = 'none';
 });
 
-// Initialize the board
+// Initialize the game board
 const tiles = [];
 const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
 
@@ -63,17 +54,17 @@ function handleTileClick(index) {
   if (!selectedTile) {
     // Select the first tile
     selectedTile = tile;
-    tile.classList.add('selected'); // Add the selected class
+    tile.classList.add('selected');
   } else {
     // Attempt to swap with the second tile
     const selectedIndex = tiles.indexOf(selectedTile);
     if (areAdjacent(selectedIndex, index)) {
-      chainingCombos = false; // Reset chaining flag for a new move
-      combos = 0; // Reset the combo counter for a new move
-      penaltyEligible = true; // Enable penalty for this move
+      chainingCombos = false;
+      combos = 0;
+      penaltyEligible = true;
       swapTiles(selectedIndex, index);
     }
-    selectedTile.classList.remove('selected'); // Remove the selected class
+    selectedTile.classList.remove('selected');
     selectedTile = null;
   }
 }
@@ -85,8 +76,8 @@ function areAdjacent(index1, index2) {
   const col2 = index2 % gridSize;
 
   return (
-    (row1 === row2 && Math.abs(col1 - col2) === 1) || // Same row, adjacent columns
-    (col1 === col2 && Math.abs(row1 - row2) === 1)    // Same column, adjacent rows
+    (row1 === row2 && Math.abs(col1 - col2) === 1) || // Adjacent in the same row
+    (col1 === col2 && Math.abs(row1 - row2) === 1)    // Adjacent in the same column
   );
 }
 
@@ -101,17 +92,14 @@ function swapTiles(index1, index2) {
   tile2.dataset.color = tempColor;
   tile2.style.backgroundColor = tempColor;
 
-  // Deduct a move only when a valid swap is performed
-  movesLeft--;
+  movesLeft--; // Deduct a move
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
 
-  // Check for game over
   if (movesLeft <= 0) {
-    showGameOverMessage(); // Show the "Game Over" overlay
+    showGameOverMessage();
   }
 
-  // Add a slight delay to allow the swap animation to complete
-  setTimeout(() => checkMatches(), 300);
+  setTimeout(() => checkMatches(), 300); // Delay for swap animation
 }
 
 function checkMatches() {
@@ -147,29 +135,37 @@ function checkMatches() {
     }
   }
 
+  console.log('Matches size:', matches.size);
+
   if (matches.size > 0) {
-    penaltyEligible = false; // Reset penalty eligibility since matches were found
+    penaltyEligible = false; // Reset penalty eligibility
     clearMatches(matches);
   } else if (penaltyEligible) {
-    applyPenalty(); // Apply penalty only if eligible
+    applyPenalty();
+  }
+
+  if (matches.size === 0) {
+    chainingCombos = false;
   }
 }
 
 function clearMatches(matches) {
-  isAnimating = true; // Lock interactions during animations
+  isAnimating = true;
 
   matches.forEach(index => {
     const tile = tiles[index];
-    tile.classList.add('clearing'); // Add clearing animation
+    tile.classList.add('clearing');
     setTimeout(() => {
       tile.dataset.color = '';
       tile.style.backgroundColor = 'white';
-      tile.classList.remove('clearing'); // Remove the class after animation
+      tile.classList.remove('clearing');
     }, 500);
   });
 
   combos++;
   highestCombo = Math.max(highestCombo, combos);
+  console.log('Updated highestCombo:', highestCombo);
+  console.log('Combos:', combos, 'Highest Combo:', highestCombo);
   const points = matches.size * 10 * combos;
   score += points;
   movesLeft += 2;
@@ -182,16 +178,19 @@ function clearMatches(matches) {
 
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
 
-  // Check if the player has reached the target score
   if (score >= targetScore) {
     showWinMessage();
   }
 
   setTimeout(() => {
     if (matches.size > 0) {
+      console.log('Dropping tiles...');
       dropTiles();
     } else {
-      showEncouragementMessage(highestCombo);
+      console.log('No more matches. Highest Combo:', highestCombo);
+      console.log('Calling showEncouragementMessage with highestCombo:', highestCombo);
+      console.log('chainingCombos value before calling showEncouragementMessage:', chainingCombos);
+      showEncouragementMessage(highestCombo); // Called here
       highestCombo = 0;
       isAnimating = false;
     }
@@ -210,7 +209,7 @@ function dropTiles() {
         const targetIndex = (row + emptySpots) * gridSize + col;
         tiles[targetIndex].dataset.color = tiles[index].dataset.color;
         tiles[targetIndex].style.backgroundColor = tiles[index].dataset.color;
-        tiles[targetIndex].classList.add('dropping'); // Add dropping animation
+        tiles[targetIndex].classList.add('dropping');
         setTimeout(() => tiles[targetIndex].classList.remove('dropping'), 500);
         tiles[index].dataset.color = '';
         tiles[index].style.backgroundColor = 'white';
@@ -222,24 +221,25 @@ function dropTiles() {
       const index = row * gridSize + col;
       tiles[index].dataset.color = colors[Math.floor(Math.random() * colors.length)];
       tiles[index].style.backgroundColor = tiles[index].dataset.color;
-      tiles[index].classList.add('dropping'); // Add dropping animation
+      tiles[index].classList.add('dropping');
       setTimeout(() => tiles[index].classList.remove('dropping'), 500);
     }
   }
 
-  // Check for new matches after tiles drop
   setTimeout(() => {
-    chainingCombos = true; // Set chaining flag for chain reactions BEFORE checking matches
+    chainingCombos = true;
+    console.log('chainingCombos set to true. Checking matches...');
     checkMatches();
+    isAnimating = false;
+    console.log('isAnimating set to false.');
 
-    // Ensure isAnimating is reset after all checks
-    isAnimating = false; // Unlock interactions
     if (!chainingCombos) {
+      console.log('No chaining combos. Highest Combo:', highestCombo);
+      console.log('Calling showEncouragementMessage with highestCombo:', highestCombo);
       showEncouragementMessage(highestCombo);
-      highestCombo = 0; // Reset the highest combo for the next sequence
-      isAnimating = false; // Unlock interactions
+      highestCombo = 0; // Reset here
     }
-  }, 500); // Wait for dropping animation to finish
+  }, 500);
 }
 
 function playComboSound(combo) {
@@ -257,27 +257,31 @@ function playComboSound(combo) {
   const soundFile = soundMap[combo];
   if (soundFile) {
     const audio = new Audio(soundFile);
-    audio.volume = soundVolume; // Use the volume setting
+    audio.volume = soundVolume;
     audio.play();
   }
 }
 
 function showComboMultiplier(multiplier, points) {
   const comboDisplay = document.getElementById('combo-display');
-  comboDisplay.textContent = `x${multiplier} (+${points} points)`; // Update the multiplier and points text
-  comboDisplay.style.display = 'block'; // Show the combo display
+  comboDisplay.textContent = `x${multiplier} (+${points} points)`;
+  comboDisplay.style.display = 'block';
 
-  // Hide the combo display after the animation
   setTimeout(() => {
     comboDisplay.style.display = 'none';
-  }, 1000); // Match the duration of the fadeOut animation
+  }, 1000);
 }
 
 function showEncouragementMessage(multiplier) {
+  // Remove any existing message
+  const existingMessage = document.getElementById('encouragement-display');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+
   const encouragementDisplay = document.createElement('div');
   encouragementDisplay.id = 'encouragement-display';
 
-  // Define message variations for each combo level
   const messages = {
     8: ['GODLIKE!', 'UNSTOPPABLE!', 'LEGENDARY!'],
     6: ['AMAZING!', 'INCREDIBLE!', 'SPECTACULAR!'],
@@ -286,7 +290,6 @@ function showEncouragementMessage(multiplier) {
     1: ['My grandmother could do better...', 'Is that all you got?', 'Try harder next time!']
   };
 
-  // Determine the message based on the combo multiplier
   let message = '';
   if (multiplier >= 8) {
     message = messages[8][Math.floor(Math.random() * messages[8].length)];
@@ -296,10 +299,10 @@ function showEncouragementMessage(multiplier) {
     message = messages[4][Math.floor(Math.random() * messages[4].length)];
   } else if (multiplier >= 2) {
     message = messages[2][Math.floor(Math.random() * messages[2].length)];
-  } else if (multiplier === 1) {
+  } else if (multiplier >= 1) {
     message = messages[1][Math.floor(Math.random() * messages[1].length)];
   } else {
-    return; // No message for zero combos
+    message = 'Keep going! You can do it!';
   }
 
   encouragementDisplay.textContent = message;
@@ -310,16 +313,14 @@ function showEncouragementMessage(multiplier) {
   encouragementDisplay.style.fontSize = '2rem';
   encouragementDisplay.style.fontWeight = 'bold';
   encouragementDisplay.style.color = '#ff5722';
-  encouragementDisplay.style.background = 'rgba(255, 255, 255, 0.8)';
+  encouragementDisplay.style.background = 'rgba(255, 255, 255, 0.9)';
   encouragementDisplay.style.padding = '10px 20px';
   encouragementDisplay.style.borderRadius = '10px';
   encouragementDisplay.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.3)';
-  encouragementDisplay.style.zIndex = '1000';
-  encouragementDisplay.style.animation = 'fadeOut 2s ease-in-out forwards';
+  encouragementDisplay.style.zIndex = '9999';
 
   document.body.appendChild(encouragementDisplay);
 
-  // Remove the message after the animation
   setTimeout(() => {
     encouragementDisplay.remove();
   }, 2000);
@@ -327,7 +328,7 @@ function showEncouragementMessage(multiplier) {
 
 function showWinMessage() {
   const winOverlay = document.getElementById('win-overlay');
-  winOverlay.style.display = 'flex'; // Show the overlay
+  winOverlay.style.display = 'flex';
 
   const restartButton = document.getElementById('restart-button');
   restartButton.addEventListener('click', restartGame);
@@ -337,42 +338,38 @@ function showGameOverMessage() {
   const winOverlay = document.getElementById('win-overlay');
   const winMessage = document.getElementById('win-message');
 
-  // Update the overlay content for "Game Over"
   winMessage.innerHTML = `
     <h2>Game Over!</h2>
     <button id="restart-button">Try Again</button>
   `;
 
-  winOverlay.style.display = 'flex'; // Show the overlay
+  winOverlay.style.display = 'flex';
 
-  // Add event listener to the restart button
   const restartButton = document.getElementById('restart-button');
   restartButton.addEventListener('click', restartGame);
 }
 
 function restartGame() {
   const winOverlay = document.getElementById('win-overlay');
-  winOverlay.style.display = 'none'; // Hide the overlay
+  winOverlay.style.display = 'none';
 
-  // Reset game variables
   combos = 0;
   movesLeft = 20;
-  score = 0; // Reset the score
+  score = 0;
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft} | Goal: ${targetScore} Points`;
 
-  // Clear and reinitialize the board
   board.innerHTML = '';
-  tiles.length = 0; // Clear the tiles array
+  tiles.length = 0;
   initBoard();
 }
 
 function applyPenalty() {
-  movesLeft--; // Deduct 1 move as a penalty
-  score = Math.max(0, score - 50); // Deduct 50 points, but ensure the score doesn't go below 0
+  movesLeft--;
+  score = Math.max(0, score - 50);
   status.textContent = `Score: ${score} | Moves Left: ${movesLeft}`;
 
   if (movesLeft <= 0) {
-    showGameOverMessage(); // Show the "Game Over" overlay
+    showGameOverMessage();
   }
 }
 
